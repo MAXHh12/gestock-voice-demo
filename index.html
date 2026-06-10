@@ -68,6 +68,29 @@
         .enroll-circle { width:56px; height:56px; border-radius:50%; border:3px solid #e2e8f0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#94a3b8; transition:all 0.4s; }
         .enroll-circle.done { border-color:#10b981; background:#d1fae5; color:#059669; }
         .enroll-circle.active { border-color:#3b82f6; background:#dbeafe; color:#1d4ed8; animation: enroll-pulse 0.8s infinite; }
+
+        /* Estado botón grabando */
+        #btnEnroll.recording {
+            background: #ef4444 !important;
+            box-shadow: 0 0 0 0 rgba(239,68,68,0.7);
+            animation: rec-pulse 1s infinite;
+            cursor: not-allowed;
+        }
+        @keyframes rec-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+            70%  { box-shadow: 0 0 0 14px rgba(239,68,68,0); }
+            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+        .rec-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: white;
+            animation: blink-dot 0.7s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes blink-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.3; transform: scale(0.7); }
+        }
     </style>
 </head>
 <body>
@@ -179,7 +202,7 @@
         </div>
 
         <!-- Botón grabar -->
-        <button id="btnEnroll" onclick="startEnrollStep()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-sm transition-all flex items-center justify-center space-x-3 shadow-lg shadow-blue-500/30 mb-3">
+        <button id="btnEnroll" onclick="startEnrollStep()" style="width:100%;background:#2563eb;color:white;font-weight:900;padding:16px;border-radius:18px;font-size:14px;border:none;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:background 0.2s;cursor:pointer;">
             <i class="fa-solid fa-microphone text-lg" id="enrollBtnIcon"></i>
             <span id="enrollBtnText">Grabar muestra 1 de 3</span>
         </button>
@@ -395,6 +418,16 @@
                         <p>→ <strong>"agregar stock pan 30"</strong></p>
                     </div>
                 </div>
+                <div class="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                    <p class="text-[10px] font-black text-orange-700 uppercase tracking-wide mb-2">📤 Quitar del inventario</p>
+                    <div class="space-y-1 text-xs text-orange-800">
+                        <p>→ <strong>"quitar de inventario leche 10"</strong></p>
+                        <p>→ <strong>"quitar inventario huevo 5"</strong></p>
+                        <p>→ <strong>"descontar pan 20"</strong></p>
+                        <p>→ <strong>"reducir stock gaseosa 15"</strong></p>
+                        <p>→ <strong>"bajar leche 10"</strong></p>
+                    </div>
+                </div>
                 <div class="bg-red-50 rounded-xl p-3 border border-red-100">
                     <p class="text-[10px] font-black text-red-700 uppercase tracking-wide mb-2">🛑 Control del pedido</p>
                     <div class="space-y-1 text-xs text-red-800">
@@ -444,6 +477,7 @@ let order = {};   // { key: {nombre, precio, icono, qty} }
 let recognition = null;
 let micActive = false;
 let micMode = 'command';   // 'command' | 'enroll'
+let enrollResultReceived = false;  // flag para saber si onresult llegó antes que onend
 
 const NUMBERS_MAP = {
     'un':1,'una':1,'uno':1,'dos':2,'tres':3,'cuatro':4,'cinco':5,
@@ -468,11 +502,15 @@ function initRecognition() {
 
     recognition.onstart = () => {
         micActive = true;
-        setMicUI(true);
+        if (micMode === 'enroll') {
+            // Confirmar visualmente que YA está grabando
+            setBtnRecording(true);
+        } else {
+            setMicUI(true);
+        }
     };
 
     recognition.onresult = (e) => {
-        // Recoger hasta 3 alternativas para mayor precisión
         const alternatives = [];
         for (let i = 0; i < e.results[0].length; i++) {
             alternatives.push(e.results[0][i].transcript.toLowerCase().trim());
@@ -481,6 +519,8 @@ function initRecognition() {
         document.getElementById('transcriptDisplay').textContent = `"${text}"`;
 
         if (micMode === 'enroll') {
+            enrollResultReceived = true;
+            setBtnRecording(false);
             processEnrollSample(text, alternatives);
         } else {
             processCommand(text, alternatives);
@@ -489,19 +529,44 @@ function initRecognition() {
 
     recognition.onerror = (e) => {
         micActive = false;
-        setMicUI(false);
-        if (e.error === 'no-speech') {
-            showToast('warn','Sin audio','No detecté voz. Intenta de nuevo.');
-        } else if (e.error === 'not-allowed') {
-            showToast('error','Micrófono','Permite el acceso al micrófono en tu navegador.');
+        if (micMode === 'enroll') {
+            setBtnRecording(false);
+            if (e.error === 'no-speech') {
+                setEnrollStatus('No escuché nada. Presiona de nuevo y habla más fuerte.', 'warn');
+            } else if (e.error === 'not-allowed') {
+                setEnrollStatus('Permiso de micrófono denegado. Actívalo en tu navegador.', 'error');
+            } else {
+                setEnrollStatus('Error de micrófono: ' + e.error + '. Intenta de nuevo.', 'error');
+            }
         } else {
-            showToast('warn','Error','Problema con el micrófono: ' + e.error);
+            setMicUI(false);
+            if (e.error === 'no-speech') {
+                showToast('warn','Sin audio','No detecté voz. Intenta de nuevo.');
+            } else if (e.error === 'not-allowed') {
+                showToast('error','Micrófono','Permite el acceso al micrófono en tu navegador.');
+            } else {
+                showToast('warn','Error','Problema con el micrófono: ' + e.error);
+            }
         }
     };
 
     recognition.onend = () => {
         micActive = false;
-        setMicUI(false);
+        if (micMode === 'enroll') {
+            // onend se dispara ANTES de onresult en algunos browsers.
+            // Solo resetear si no hubo resultado (el resultado lo maneja processEnrollSample).
+            // Usamos un pequeño delay para dejar que onresult llegue primero.
+            setTimeout(() => {
+                if (micMode === 'enroll' && !enrollResultReceived) {
+                    // No hubo resultado — probablemente no-speech sin error
+                    setBtnRecording(false);
+                    setEnrollStatus('No escuché nada. Presiona el botón y habla claramente.', 'warn');
+                }
+                enrollResultReceived = false;
+            }, 300);
+        } else {
+            setMicUI(false);
+        }
     };
 }
 
@@ -583,12 +648,11 @@ function processCommand(raw, alternatives) {
     }
 
     // === RECARGAR STOCK ===
-    // "recargar leche 10", "cargar huevo 50", "agregar stock pan 30", "sumar stock leche 20"
-    const stockMatch = frase.match(/^(?:recargar|cargar|reponer|sumar stock|agregar stock|añadir stock)\s+(.+?)\s+(\d+|[a-záéíóúüñ]+)$/);
-    if (stockMatch) {
-        const productPart = stockMatch[1].trim();
-        const qtyPart = stockMatch[2].trim();
-        const qty = parseQty(qtyPart);
+    // "recargar leche 10", "cargar huevo 50", "agregar stock pan 30"
+    const stockAddMatch = frase.match(/^(?:recargar|cargar|reponer|sumar stock|agregar stock|añadir stock)\s+(.+?)\s+(\d+|[a-záéíóúüñ]+)$/);
+    if (stockAddMatch) {
+        const productPart = stockAddMatch[1].trim();
+        const qty = parseQty(stockAddMatch[2].trim());
         const key = findProductKey(productPart);
         if (key && qty > 0) {
             catalog[key].stock += qty;
@@ -596,6 +660,30 @@ function processCommand(raw, alternatives) {
             showToast('ok', 'Stock recargado', `+${qty} unidades de ${catalog[key].nombre}`);
             renderSlider();
         } else {
+            showToast('warn', 'No encontrado', `Producto "${productPart}" no existe en el catálogo.`);
+        }
+        return;
+    }
+
+    // === QUITAR DEL INVENTARIO (stock físico) ===
+    // "quitar de inventario leche 10", "quitar inventario huevo 5"
+    // "descontar leche 20", "reducir stock pan 15", "bajar pan 10"
+    const stockRemoveMatch = frase.match(/^(?:quitar(?:\s+de)?\s+(?:inventario|stock)|descontar(?:\s+del?\s+(?:inventario|stock))?|reducir(?:\s+stock)?|bajar(?:\s+stock)?)\s+(.+?)\s+(\d+|[a-záéíóúüñ]+)$/);
+    if (stockRemoveMatch) {
+        const productPart = stockRemoveMatch[1].trim();
+        const qty = parseQty(stockRemoveMatch[2].trim());
+        const key = findProductKey(productPart);
+        if (key && qty > 0) {
+            if (catalog[key].stock < qty) {
+                showToast('warn', 'Stock insuficiente', `Solo hay ${catalog[key].stock} u. de ${catalog[key].nombre}.`);
+                setStatus(`⚠️ Solo hay ${catalog[key].stock} u. de ${catalog[key].nombre} en inventario.`, 'warn');
+            } else {
+                catalog[key].stock -= qty;
+                setStatus(`📤 Inventario reducido: -${qty} ${catalog[key].nombre} (Quedan: ${catalog[key].stock})`, 'ok');
+                showToast('ok', 'Inventario actualizado', `-${qty} unidades de ${catalog[key].nombre}`);
+                renderSlider();
+            }
+        } else if (!key) {
             showToast('warn', 'No encontrado', `Producto "${productPart}" no existe en el catálogo.`);
         }
         return;
@@ -903,12 +991,9 @@ function processEnrollSample(text, alternatives) {
 
     } else {
         // Siguiente muestra
-        setEnrollStatus(`✅ Muestra ${enrollStep} capturada. Habla la muestra ${enrollStep+1} de 3.`, 'ok');
+        setEnrollStatus(`✅ Muestra ${enrollStep} capturada. Ahora habla la muestra ${enrollStep+1} de 3.`, 'ok');
         markEnrollCircle(enrollStep, 'active');
-        document.getElementById('enrollBtnText').textContent = `Grabar muestra ${enrollStep+1} de 3`;
-        document.getElementById('enrollBtnIcon').className = 'fa-solid fa-microphone text-lg';
-        // Habilitar botón para siguiente
-        document.getElementById('btnEnroll').disabled = false;
+        resetEnrollBtn();
     }
 }
 
@@ -945,27 +1030,45 @@ function startEnrollStep() {
     if (!recognition) initRecognition();
     if (!recognition) return;
 
-    const btn = document.getElementById('btnEnroll');
-    btn.disabled = true;
-    document.getElementById('enrollBtnIcon').className = 'fa-solid fa-circle-notch fa-spin text-lg';
-    document.getElementById('enrollBtnText').textContent = 'Escuchando...';
+    enrollResultReceived = false;
+    micMode = 'enroll';
 
-    setEnrollStatus(`Habla claramente: "Gestock activa mi inventario ahora"`, 'info');
+    // Cambio visual INMEDIATO — sin esperar al micrófono
+    setBtnRecording(true);
+    setEnrollStatus('🎙️ Habla claramente: "Gestock activa mi inventario ahora"', 'info');
     markEnrollCircle(enrollStep, 'active');
 
-    micMode = 'enroll';
-    try { recognition.start(); } catch(e){}
+    try { recognition.start(); } catch(e){ setBtnRecording(false); }
+}
+
+function setBtnRecording(isRecording) {
+    const btn = document.getElementById('btnEnroll');
+    const icon = document.getElementById('enrollBtnIcon');
+    const text = document.getElementById('enrollBtnText');
+    if (isRecording) {
+        btn.disabled = true;
+        btn.style.cssText = 'width:100%;background:#dc2626;color:white;font-weight:900;padding:16px;border-radius:18px;font-size:14px;border:none;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;box-shadow:0 0 0 4px rgba(220,38,38,0.3);cursor:not-allowed;animation:rec-pulse 1s infinite;';
+        icon.className = 'fa-solid fa-circle text-xs';
+        icon.style.color = 'white';
+        text.textContent = 'Grabando... habla ahora';
+    } else {
+        btn.disabled = false;
+        btn.style.cssText = 'width:100%;background:#2563eb;color:white;font-weight:900;padding:16px;border-radius:18px;font-size:14px;border:none;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;box-shadow:0 8px 20px rgba(37,99,235,0.3);transition:background 0.2s;cursor:pointer;';
+        icon.className = 'fa-solid fa-microphone text-lg';
+        icon.style.color = '';
+        text.textContent = `Grabar muestra ${enrollStep + 1} de 3`;
+    }
+}
+
+function resetEnrollBtn() {
+    setBtnRecording(false);
 }
 
 function setEnrollStatus(msg, type) {
     const el = document.getElementById('enrollStatus');
     el.textContent = msg;
     el.className = `text-center text-xs font-semibold mb-5 min-h-[36px] flex items-center justify-center ${type==='ok'?'text-emerald-600':type==='warn'?'text-amber-600':type==='error'?'text-red-600':'text-blue-600'}`;
-    // Re-habilitar botón
-    const btn = document.getElementById('btnEnroll');
-    btn.disabled = false;
-    document.getElementById('enrollBtnIcon').className = 'fa-solid fa-microphone text-lg';
-    document.getElementById('enrollBtnText').textContent = `Grabar muestra ${enrollStep+1} de 3`;
+    resetEnrollBtn();
 }
 
 function markEnrollCircle(idx, state) {
@@ -985,7 +1088,7 @@ function goToEnrollFromModal() {
     document.getElementById('ec1').innerHTML = '<i class="fa-solid fa-microphone"></i>';
     document.getElementById('ec2').innerHTML = '<i class="fa-solid fa-microphone"></i>';
     document.getElementById('enrollStatus').textContent = 'Presiona el botón para comenzar';
-    document.getElementById('enrollBtnText').textContent = 'Grabar muestra 1 de 3';
+    resetEnrollBtn();
     showScreen('enrollScreen');
 }
 
@@ -997,10 +1100,43 @@ function skipEnroll() {
 
 // -------- LOGIN --------
 function doLogin() {
-    const email = document.getElementById('emailInput').value.trim();
-    const pwd   = document.getElementById('passwordInput').value.trim();
-    if (!email) { showToast('warn','Correo requerido','Ingresa tu correo electrónico.'); return; }
-    let nombre = email.split('@')[0].replace(/[\.\-_]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    const emailEl = document.getElementById('emailInput');
+    const pwdEl   = document.getElementById('passwordInput');
+    const email   = emailEl.value.trim();
+    const pwd     = pwdEl.value.trim();
+
+    // Validar correo
+    if (!email) {
+        emailEl.classList.add('border-red-400');
+        showToast('warn','Correo requerido','Ingresa tu correo electrónico.');
+        emailEl.focus();
+        return;
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+        emailEl.classList.add('border-red-400');
+        showToast('warn','Correo inválido','Escribe un correo válido, ej: nombre@empresa.com');
+        emailEl.focus();
+        return;
+    }
+    emailEl.classList.remove('border-red-400');
+
+    // Validar contraseña
+    if (!pwd) {
+        pwdEl.classList.add('border-red-400');
+        showToast('warn','Contraseña requerida','Ingresa tu contraseña para continuar.');
+        pwdEl.focus();
+        return;
+    }
+    if (pwd.length < 4) {
+        pwdEl.classList.add('border-red-400');
+        showToast('warn','Contraseña muy corta','Debe tener al menos 4 caracteres.');
+        pwdEl.focus();
+        return;
+    }
+    pwdEl.classList.remove('border-red-400');
+
+    let nombre = email.split('@')[0].replace(/[.\-_]/g,' ').split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
     const iniciales = nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
     startSession(nombre, email, iniciales);
 }

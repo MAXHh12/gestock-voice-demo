@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestock Voice - App Móvil</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .figma-grid {
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+        }
+        .listening-pulse {
+            animation: microphone-pulse 1.5s infinite;
+        }
+        @keyframes microphone-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-0 sm:p-4">
+
+    <!-- CONTENEDOR TEMPLATE SMARTPHONE -->
+    <div class="w-full max-w-[412px] h-[892px] bg-[#f4f6f9] shadow-2xl overflow-hidden flex flex-col relative sm:rounded-[40px] sm:border-[8px] sm:border-gray-800">
+        
+        <!-- PANTALLA 1: INICIAR SESIÓN -->
+        <div id="loginScreen" class="flex-1 flex flex-col p-6 figma-grid">
+            <!-- Header -->
+            <div class="flex justify-between items-center mt-4 mb-8">
+                <div class="flex items-center space-x-2 text-[#0f2d59]">
+                    <i class="fa-solid fa-cubes text-2xl text-[#1e6091]"></i>
+                    <span class="font-extrabold text-lg tracking-wider text-slate-800">GESTOCK VOICE</span>
+                </div>
+                <div class="bg-[#e8f0fe] px-3 py-1.5 rounded-full flex items-center space-x-1.5 border border-blue-100">
+                    <i class="fa-solid fa-lock text-sm text-[#1976d2]"></i>
+                    <div class="text-[10px] text-slate-600 font-medium leading-none">
+                        <p class="font-bold">Acceso</p>
+                        <p class="text-[9px]">Cuenta segura</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Login -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex-1 flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex flex-col items-center pt-2">
+                        <div class="w-14 h-14 bg-[#e8f0fe] rounded-full flex items-center justify-center text-[#1976d2] mb-3">
+                            <i class="fa-regular fa-user text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-[#0f2d59]">Iniciar sesión</h2>
+                        <p class="text-center text-xs text-slate-400 mt-1 px-4">Ingresa con tu correo y contraseña para continuar dentro de la app móvil de Gestock.</p>
+                    </div>
+
+                    <!-- Campos del Formulario -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-[#0f2d59] block mb-1.5">Correo electrónico</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                    <i class="fa-regular fa-envelope"></i>
+                                </span>
+                                <input type="email" id="emailInput" placeholder="correo@empresa.com" class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-700">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-[#0f2d59] block mb-1.5">Contraseña</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                    <i class="fa-solid fa-key"></i>
+                                </span>
+                                <input type="password" id="passwordInput" placeholder="Tu contraseña aquí" class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-700">
+                                <span onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors">
+                                    <i id="togglePasswordIcon" class="fa-regular fa-eye"></i>
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-end mt-1.5">
+                                <button onclick="openRecoveryModal()" class="text-[11px] font-semibold text-[#1488cc] hover:underline focus:outline-none">
+                                    ¿Olvidaste tu contraseña?
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="loginConFormulario()" class="w-full bg-[#1488cc] hover:bg-[#1177b3] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10 mt-2">
+                        Ingresar
+                    </button>
+
+                    <div class="relative flex py-1 items-center">
+                        <div class="flex-grow border-t border-slate-200"></div>
+                        <span class="flex-shrink mx-3 text-[10px] text-slate-400 uppercase tracking-wider font-medium">o continuar con</span>
+                        <div class="flex-grow border-t border-slate-200"></div>
+                    </div>
+
+                    <!-- Botones OAuth -->
+                    <div class="space-y-2">
+                        <button onclick="openOAuthModal('google')" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition-all">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="w-4 h-4" alt="Google">
+                            <span>Ingresar con Google</span>
+                        </button>
+                        <button onclick="openOAuthModal('microsoft')" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition-all">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="w-4 h-4" alt="Microsoft">
+                            <span>Ingresar con Microsoft</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- PANTALLA 2: APLICACIÓN PRINCIPAL DE VOZ -->
+        <div id="appScreen" class="flex-1 flex flex-col hidden relative">
+            <!-- Top Navbar -->
+            <div class="bg-white px-5 py-4 border-b border-slate-100 flex justify-between items-center relative z-20">
+                <div class="flex items-center space-x-2 text-[#0f2d59]">
+                    <i class="fa-solid fa-cubes text-xl text-[#1e6091]"></i>
+                    <span class="font-black text-sm tracking-wider text-slate-800">GESTOCK VOICE</span>
+                </div>
+                
+                <div class="relative">
+                    <button onclick="toggleUserMenu(event)" class="bg-[#f1f5f9] pr-3 pl-2 py-1 rounded-full flex items-center space-x-2 border border-slate-200 hover:bg-slate-100 transition-colors focus:outline-none">
+                        <div id="userAvatar" class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">??</div>
+                        <div class="text-left">
+                            <p class="text-[9px] text-slate-400 font-medium leading-none">Usuario</p>
+                            <p id="topNavbarName" class="text-[10px] font-bold text-slate-700 leading-tight">Cargando...</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 pl-1"></i>
+                    </button>
+
+                    <!-- MENÚ DESPLEGABLE -->
+                    <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200/80 py-1.5 z-30 transition-all">
+                        <div class="px-3 py-2 border-b border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-medium">Conectado como</p>
+                            <p id="dropdownUserEmail" class="text-xs font-bold text-slate-700 truncate">correo@empresa.com</p>
+                        </div>
+                        <!-- OPCIÓN: INVENTARIO DE PRODUCTOS -->
+                        <button onclick="openInventoryModal(event)" class="w-full text-left px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition-colors">
+                            <i class="fa-solid fa-boxes-stacked text-amber-500 text-sm"></i>
+                            <span>Inventario registrado</span>
+                        </button>
+                        <button onclick="openVoiceConfigModal(event)" class="w-full text-left px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition-colors">
+                            <i class="fa-solid fa-microphone-lines text-blue-500 text-sm"></i>
+                            <span>Configurar mi voz</span>
+                        </button>
+                        <button onclick="logout()" class="w-full text-left px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center space-x-2 border-t border-slate-100 transition-colors">
+                            <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                            <span>Cerrar sesión</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Central Container -->
+            <div class="p-4 flex-1 flex flex-col space-y-3 overflow-y-auto">
+                
+                <!-- CARD TOTAL ACTUAL -->
+                <div class="bg-white rounded-3xl p-5 border border-slate-200/60 shadow-sm text-center relative">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Venta Actual</p>
+                    <h2 class="text-4xl font-extrabold text-[#0f2d59] mt-2 mb-1">$ <span id="cartTotal">0</span></h2>
+                    
+                    <div class="border-t border-slate-100 mt-4 pt-2 space-y-3 text-left" id="cartItemsContainer"></div>
+                </div>
+
+                <!-- INDICADOR DE BLOQUEO POR VOZ BIOMÉTRICA -->
+                <div id="biometricBadge" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 flex items-center space-x-2 text-emerald-700">
+                    <i class="fa-solid fa-fingerprint animate-pulse text-xs"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-wider">Seguridad Vocal: Activada para tu usuario</p>
+                </div>
+
+                <!-- CAROUSEL HORIZONTAL DE CATEGORÍAS -->
+                <div class="bg-white/80 rounded-2xl p-3 border border-slate-200/50 flex space-x-3 overflow-x-auto figma-grid scrollbar-none" id="categoriesVoiceSlider"></div>
+
+                <!-- STATUS BAR MENSAJE -->
+                <div class="bg-white rounded-xl p-3 border border-slate-200/60 flex items-center justify-between">
+                    <div class="text-left">
+                        <p class="text-[11px] font-bold text-[#1488cc]" id="statusMessage">Esperando comando de voz...</p>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Backup en Nube (Java DB): ACTIVE</p>
+                    </div>
+                    <button onclick="clearCart()" class="bg-[#e63946] hover:bg-red-600 text-white font-extrabold text-[9px] px-3 py-2 rounded-lg uppercase tracking-wider transition-colors">
+                        Cancelar Orden
+                    </button>
+                </div>
+
+                <!-- CONTROLLER INTERACTIVO POR VOZ -->
+                <div class="bg-gradient-to-b from-[#2a75d3] to-[#124fa0] rounded-3xl p-5 flex-1 flex flex-col items-center justify-between text-white shadow-inner relative z-10">
+                    <h3 class="text-sm font-extrabold tracking-wider mt-2 uppercase" id="voiceInstruction">TOCA PARA HABLAR</h3>
+                    
+                    <button id="micBtn" onclick="toggleVoiceRecognition()" class="w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-xl text-[#1a66ca] hover:scale-105 transition-all">
+                        <div class="w-24 h-24 border-4 border-blue-50 rounded-full flex items-center justify-center bg-white" id="micBtnInner">
+                            <i class="fa-solid fa-microphone text-3xl" id="micIconApp"></i>
+                        </div>
+                    </button>
+
+                    <div class="w-full flex flex-col items-center">
+                        <p class="text-[10px] text-blue-100/70 mb-3 italic text-center px-4" id="transcriptText">
+                            Prueba: "Registrar cable precio 1200 cantidad 50" o añade al pedido diciendo "cable".
+                        </p>
+                        <button onclick="payOrder()" class="w-full bg-[#e63946] hover:bg-red-600 text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md">
+                            Confirmar y Salir Stock
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENTANA MODAL: LISTADO DE INVENTARIO REGISTRADO -->
+        <div id="inventoryModal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-end justify-center transition-all">
+            <div class="bg-white w-full rounded-t-[32px] p-6 space-y-4 h-[75%] flex flex-col shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+                    <div class="flex items-center space-x-2 text-slate-800">
+                        <i class="fa-solid fa-boxes-stacked text-amber-500"></i>
+                        <h3 class="text-sm font-bold">Catálogo e Inventario General</h3>
+                    </div>
+                    <button onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                
+                <p class="text-xs text-slate-400 leading-tight flex-shrink-0">Aquí controlas las existencias disponibles para la venta. Al facturar, el stock disminuirá automáticamente.</p>
+                
+                <!-- Lista Scrolleable del Inventario -->
+                <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="inventoryItemsList">
+                    <!-- Los productos se inyectan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VENTANA MODAL 1: SELECTOR DE CUENTAS (OAUTH) -->
+        <div id="oauthModal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-end justify-center transition-all">
+            <div class="bg-white w-full rounded-t-[32px] p-6 space-y-4 max-h-[80%] overflow-y-auto shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <img id="oauthProviderLogo" src="" class="w-5 h-5" alt="Logo">
+                        <h3 id="oauthModalTitle" class="text-sm font-bold text-slate-800">Seleccionar cuenta</h3>
+                    </div>
+                    <button onclick="closeOAuthModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="space-y-2" id="oauthAccountsList"></div>
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-100"></div>
+                    <span class="flex-shrink mx-2 text-[10px] text-slate-400 font-semibold uppercase">O usa otra cuenta</span>
+                    <div class="flex-grow border-t border-slate-100"></div>
+                </div>
+                <div class="space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                    <div>
+                        <input type="text" id="manualOauthName" placeholder="Tu Nombre Completo" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-700">
+                    </div>
+                    <div class="flex space-x-2">
+                        <input type="email" id="manualOauthEmail" placeholder="nombre@correo.com" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-700">
+                        <button onclick="loginManualOAuth()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors">Ir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENTANA MODAL 2: CONFIGURACIÓN BIOMÉTRICA DE VOZ -->
+        <div id="voiceConfigModal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-end justify-center transition-all">
+            <div class="bg-white w-full rounded-t-[32px] p-6 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2 text-slate-800">
+                        <i class="fa-solid fa-fingerprint text-blue-500"></i>
+                        <h3 class="text-sm font-bold">Seguridad de Huella Vocal</h3>
+                    </div>
+                    <button onclick="closeVoiceConfigModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <p class="text-xs text-slate-500 leading-normal">Registra tu tono acústico para blindar Gestock Voice de comandos externos.</p>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center space-y-2">
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Frase de Muestra</p>
+                        <p class="text-xs font-extrabold text-slate-700 italic">"Gestock actívate con mi voz hoy"</p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs py-1">
+                        <span class="text-slate-500">Filtro Biométrico:</span>
+                        <span id="biometricStatusLabel" class="font-bold text-red-500 uppercase text-[10px]">Inactivo</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="btnEnrollVoice" onclick="startVoiceEnrollment()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center space-x-2">
+                            <i id="btnEnrollIcon" class="fa-solid fa-microphone"></i>
+                            <span id="btnEnrollText">Grabar Patrón</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENTANA MODAL 3: RECUPERACIÓN DE CONTRASEÑA -->
+        <div id="recoveryModal" class="hidden absolute inset-0 bg-black/60 z-50 flex items-end justify-center transition-all">
+            <div class="bg-white w-full rounded-t-[32px] p-6 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div class="flex items-center space-x-2 text-[#0f2d59]">
+                        <i class="fa-solid fa-shield-halved text-blue-500"></i>
+                        <h3 class="text-sm font-bold">Recuperar Contraseña</h3>
+                    </div>
+                    <button onclick="closeRecoveryModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div id="recoveryFormContent" class="space-y-4">
+                    <p class="text-xs text-slate-500">Ingresa tu correo para recibir un enlace seguro de restauración.</p>
+                    <div>
+                        <label class="text-xs font-bold text-[#0f2d59] block mb-1.5">Correo electrónico</label>
+                        <input type="email" id="recoveryEmailInput" placeholder="tu-correo@empresa.com" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-700">
+                    </div>
+                    <button onclick="executePasswordRecovery()" class="w-full bg-[#1488cc] hover:bg-[#1177b3] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md">Enviar</button>
+                </div>
+                <div id="recoverySuccessContent" class="hidden text-center py-4 space-y-3">
+                    <h4 class="text-sm font-bold text-slate-800">¡Correo Enviado!</h4>
+                    <button onclick="closeRecoveryModal()" class="text-xs font-bold text-[#1488cc] hover:underline">Volver</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT DE INTERACCIÓN INTEGRADO -->
+    <script>
+        // Catálogo base con control de STOCK incorporado
+        let CATALOGO_PRECIOS = {
+            'leche': { nombre: 'Leche (Litro)', precio: 2500, icono: 'fa-bottle-water', stock: 15 },
+            'huevo': { nombre: 'Huevos (Docena)', precio: 7800, icono: 'fa-regular fa-egg', stock: 8 }
+        };
+
+        let inventarioVenta = {}; 
+        let isListening = false;
+        let recognition;
+        let voiceBiometricsEnabled = false;
+        let isEnrolling = false;
+
+        // RENDERIZAR INVENTARIO CON VISUALIZACIÓN DE STOCK DISPONIBLE
+        function renderInventoryList() {
+            const listContainer = document.getElementById('inventoryItemsList');
+            listContainer.innerHTML = ''; 
+            
+            const keys = Object.keys(CATALOGO_PRECIOS);
+
+            if (keys.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-8 text-slate-400 italic text-xs">No hay productos cargados en stock.</div>`;
+                return;
+            }
+
+            keys.forEach(key => {
+                const item = CATALOGO_PRECIOS[key];
+                let stockBadgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+                if(item.stock === 0) stockBadgeClass = "bg-red-50 text-red-600 border border-red-200 font-bold";
+                else if(item.stock <= 3) stockBadgeClass = "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse";
+
+                listContainer.innerHTML += `
+                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-600">
+                                <i class="fa-solid ${item.icono}"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-xs font-bold text-slate-700">${item.nombre}</p>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-md ${stockBadgeClass} inline-block mt-1">
+                                    ${item.stock > 0 ? `Stock: ${item.stock} u.` : 'AGOTADO'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-extrabold text-slate-700">$ ${item.precio.toLocaleString('es-CO')}</span>
+                            <button onclick="eliminarProductoCatalogo('${key}')" class="w-7 h-7 bg-red-50 text-red-400 hover:text-red-600 rounded-lg flex items-center justify-center border border-red-100">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function eliminarProductoCatalogo(key) {
+            if (CATALOGO_PRECIOS[key]) {
+                if (inventarioVenta[key]) {
+                    delete inventarioVenta[key];
+                    renderCart();
+                }
+                delete CATALOGO_PRECIOS[key];
+                renderInventoryList();
+            }
+        }
+
+        function openInventoryModal(event) {
+            event.stopPropagation();
+            document.getElementById('userDropdown').classList.add('hidden');
+            renderInventoryList();
+            document.getElementById('inventoryModal').classList.remove('hidden');
+        }
+
+        function closeInventoryModal() { document.getElementById('inventoryModal').classList.add('hidden'); }
+
+        // PROCESAMIENTO DE COMANDOS DE VOZ CON RECONOCIMIENTO DE CANTIDAD
+        function procesarComandoVoz(frase) {
+            let encontrado = false;
+
+            if (frase === 'cancelar orden' || frase === 'borrar todo') {
+                clearCart();
+                return;
+            } else if (frase.includes('pagar') || frase.includes('confirmar')) {
+                payOrder();
+                return;
+            }
+
+            const disparadoresRegistro = ['añadir', 'agregar', 'registrar', 'crear'];
+            let esComandoRegistro = disparadoresRegistro.some(palabra => frase.startsWith(palabra));
+
+            if (esComandoRegistro) {
+                const coincidenciaPrecio = frase.match(/(?:precio|valor|a)?\s*(\d+[\d\s\.]*)/);
+                const coincidenciaCantidad = frase.match(/(?:cantidad|stock|unidades)?\s*(\d+)(?!\s*(?:precio|valor))/);
+                
+                let precioVal = coincidenciaPrecio ? parseInt(coincidenciaPrecio[1].replace(/[\s\.]/g, '')) : 0;
+                let stockVal = coincidenciaCantidad ? parseInt(coincidenciaCantidad[1].trim()) : 1;
+
+                let nombreProducto = frase;
+                disparadoresRegistro.forEach(p => { nombreProducto = nombreProducto.replace(p, ''); });
+                if(coincidenciaPrecio) nombreProducto = nombreProducto.replace(coincidenciaPrecio[0], '');
+                if(coincidenciaCantidad) nombreProducto = nombreProducto.replace(coincidenciaCantidad[0], '');
+                
+                nombreProducto = nombreProducto.replace(/\b(precio|valor|cantidad|unidades|de|a)\b/g, '').replace(/\s+/g, ' ').trim();
+
+                if (nombreProducto.length > 1 && precioVal > 0) {
+                    CATALOGO_PRECIOS[nombreProducto] = {
+                        nombre: nombreProducto.charAt(0).toUpperCase() + nombreProducto.slice(1),
+                        precio: precioVal,
+                        icono: 'fa-box-open',
+                        stock: stockVal
+                    };
+                    document.getElementById('statusMessage').innerText = `REGISTRADO: ${nombreProducto} (${stockVal} u.)`;
+                    document.getElementById('statusMessage').className = "text-[11px] font-bold text-emerald-600";
+                    return;
+                }
+            }
+
+            Object.keys(CATALOGO_PRECIOS).forEach(key => {
+                if (frase.includes(key)) {
+                    encontrado = true;
+                    const itemCatalogo = CATALOGO_PRECIOS[key];
+
+                    if (itemCatalogo.stock > 0) {
+                        itemCatalogo.stock -= 1; 
+
+                        if (!inventarioVenta[key]) {
+                            inventarioVenta[key] = {
+                                nombre: itemCatalogo.nombre,
+                                precio: itemCatalogo.precio,
+                                icono: itemCatalogo.icono,
+                                qty: 0
+                            };
+                        }
+                        inventarioVenta[key].qty += 1;
+                        
+                        document.getElementById('statusMessage').innerText = `RESERVADO: +1 ${itemCatalogo.nombre} (Quedan ${itemCatalogo.stock})`;
+                        document.getElementById('statusMessage').className = "text-[11px] font-bold text-[#1488cc]";
+                    } else {
+                        document.getElementById('statusMessage').innerText = `SIN STOCK: "${itemCatalogo.nombre}" está agotado.`;
+                        document.getElementById('statusMessage').className = "text-[11px] font-bold text-red-500 animate-bounce";
+                    }
+                }
+            });
+
+            if (!encontrado) { 
+                document.getElementById('statusMessage').innerText = "Comando no comprendido."; 
+            } else { 
+                renderCart(); 
+            }
+        }
+
+        function clearCart() {
+            Object.keys(inventarioVenta).forEach(key => {
+                if (CATALOGO_PRECIOS[key]) {
+                    CATALOGO_PRECIOS[key].stock += inventarioVenta[key].qty;
+                }
+            });
+            inventarioVenta = {};
+            renderCart();
+            document.getElementById('statusMessage').innerText = "Pedido cancelado. El stock fue restaurado.";
+            document.getElementById('statusMessage').className = "text-[11px] font-bold text-slate-500";
+        }
+
+        function payOrder() {
+            const total = document.getElementById('cartTotal').innerText;
+            if(total === "0") { alert("No hay productos reservados en el pedido."); return; }
+            alert(`Salida de inventario confirmada exitosamente por un valor total de $ ${total} COP.`);
+            inventarioVenta = {}; 
+            renderCart();
+            document.getElementById('statusMessage').innerText = "Venta facturada. Stock actualizado con éxito.";
+            document.getElementById('statusMessage').className = "text-[11px] font-bold text-emerald-600";
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            const slider = document.getElementById('categoriesVoiceSlider');
+            container.innerHTML = ''; slider.innerHTML = '';
+            let totalAcumulado = 0;
+            let keysAgregadas = Object.keys(inventarioVenta);
+
+            if (keysAgregadas.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-6">Ningún artículo reservado en esta orden.</p>`;
+                slider.innerHTML = `<p class="text-[10px] text-slate-400 italic w-full text-center">Sin actividad</p>`;
+                document.getElementById('cartTotal').innerText = "0";
+                return;
+            }
+
+            keysAgregadas.forEach(key => {
+                const item = inventarioVenta[key];
+                if (item.qty > 0) {
+                    const subtotal = item.qty * item.precio;
+                    totalAcumulado += subtotal;
+
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between py-1">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs">${item.qty}</div>
+                                <span class="text-xs font-semibold text-slate-700">${item.nombre}</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">$ ${subtotal.toLocaleString('es-CO')}</span>
+                        </div>
+                    `;
+
+                    slider.innerHTML += `
+                        <div class="flex-shrink-0 bg-white border-2 border-blue-400 relative px-3 py-2 rounded-xl flex flex-col items-center justify-center w-20 shadow-sm">
+                            <span class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white font-bold text-[8px] px-1.5 py-0.5 rounded-full">${item.qty}</span>
+                            <i class="fa-solid ${item.icono} text-blue-600 mb-1"></i>
+                            <span class="text-[9px] font-black text-slate-800 text-center truncate w-full">${key}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('cartTotal').innerText = totalAcumulado.toLocaleString('es-CO');
+        }
+
+        // CONTROL DE RECONOCIMIENTO INTEGRADO DE VOZ (SISTEMA DE AUDICIÓN PRINCIPAL)
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition(); 
+            recognition.lang = 'es-CO';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                if(isEnrolling) {
+                    document.getElementById('btnEnrollText').innerText = "Escuchando muestra...";
+                } else {
+                    document.getElementById('voiceInstruction').innerText = "Escuchando...";
+                    document.getElementById('micBtnInner').classList.add('listening-pulse');
+                }
+            };
+            
+            recognition.onresult = function(event) {
+                const text = event.results[event.resultIndex][0].transcript.toLowerCase();
+                
+                // Si está en modo grabación biométrica
+                if(isEnrolling) {
+                    isEnrolling = false; 
+                    voiceBiometricsEnabled = true;
+                    document.getElementById('biometricStatusLabel').innerText = "Protección Vocal Activa";
+                    document.getElementById('biometricStatusLabel').className = "text-emerald-600 font-bold text-[10px] uppercase";
+                    document.getElementById('biometricBadge').classList.remove('hidden');
+                    alert("¡Patrón acústico grabado y configurado con éxito!");
+                    closeVoiceConfigModal();
+                    return;
+                }
+                
+                document.getElementById('transcriptText').innerText = `Capturado: "${text}"`;
+                procesarComandoVoz(text);
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                if(isEnrolling) {
+                    isEnrolling = false;
+                    document.getElementById('btnEnrollText').innerText = "Grabar Patrón";
+                }
+                document.getElementById('voiceInstruction').innerText = "TOCA PARA HABLAR";
+                document.getElementById('micBtnInner').classList.remove('listening-pulse');
+            };
+        }
+
+        function toggleVoiceRecognition() { 
+            if (isListening) recognition.stop(); 
+            else recognition.start(); 
+        }
+
+        function startVoiceEnrollment() { 
+            isEnrolling = true; 
+            document.getElementById('btnEnrollText').innerText = "Iniciando micrófono..."; 
+            recognition.start(); 
+        }
+
+        // FLUJO DE LOGINS REESTABLECIDOS DINÁMICAMENTE
+        function loginConFormulario() {
+            const email = document.getElementById('emailInput').value.trim();
+            if(!email) { alert("Por favor ingresa un correo electrónico."); return; }
+            
+            // Extraer el nombre basado en la primera parte del correo de forma inteligente
+            let nombreExtraido = email.split('@')[0];
+            nombreExtraido = nombreExtraido.replace(/[\.\-_]/g, ' ');
+            nombreExtraido = nombreExtraido.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            
+            const iniciales = nombreExtraido.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+            configurarSesionUsuario(nombreExtraido, email, iniciales);
+            inicializarAppLimpia();
+        }
+
+        function openOAuthModal(provider) {
+            document.getElementById('oauthModal').classList.remove('hidden');
+            const list = document.getElementById('oauthAccountsList');
+            document.getElementById('oauthModalTitle').innerText = `Ingresar con ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
+            
+            list.innerHTML = `
+                <div onclick="seleccionarCuentaOAuth('Duvan Romero', 'duvan.romero@gmail.com', 'DR')" class="p-3 border rounded-xl cursor-pointer hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center space-x-2">
+                    <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">DR</div>
+                    <span>Duvan Romero (duvan.romero@gmail.com)</span>
+                </div>
+            `;
+        }
+
+        function loginManualOAuth() {
+            const nombre = document.getElementById('manualOauthName').value.trim();
+            const email = document.getElementById('manualOauthEmail').value.trim();
+            if(!nombre || !email) { alert("Por favor completa ambos campos."); return; }
+            
+            const iniciales = nombre.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+            configurarSesionUsuario(nombre, email, iniciales);
+            closeOAuthModal();
+            inicializarAppLimpia();
+        }
+
+        function seleccionarCuentaOAuth(n, e, a) {
+            configurarSesionUsuario(n, e, a);
+            closeOAuthModal();
+            inicializarAppLimpia();
+        }
+
+        function configurarSesionUsuario(nombre, email, iniciales) {
+            document.getElementById('topNavbarName').innerText = nombre;
+            document.getElementById('dropdownUserEmail').innerText = email;
+            document.getElementById('userAvatar').innerText = iniciales || '??';
+        }
+
+        function inicializarAppLimpia() { 
+            inventarioVenta = {}; 
+            renderCart(); 
+            navigate('appScreen'); 
+        }
+
+        // NAVEGACIÓN GENERAL Y MODALES
+        function toggleUserMenu(event) { event.stopPropagation(); document.getElementById('userDropdown').classList.toggle('hidden'); }
+        function logout() { document.getElementById('userDropdown').classList.add('hidden'); navigate('loginScreen'); }
+        window.onclick = function(e) { document.getElementById('userDropdown').classList.add('hidden'); }
+        function navigate(screenId) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+        function openRecoveryModal() { document.getElementById('recoveryModal').classList.remove('hidden'); }
+        function closeRecoveryModal() { document.getElementById('recoveryModal').classList.add('hidden'); }
+        function executePasswordRecovery() { document.getElementById('recoveryFormContent').classList.add('hidden'); document.getElementById('recoverySuccessContent').classList.remove('hidden'); }
+        function togglePasswordVisibility() {
+            const p = document.getElementById('passwordInput');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+        function closeOAuthModal() { document.getElementById('oauthModal').classList.add('hidden'); }
+        function openVoiceConfigModal(e) { e.stopPropagation(); document.getElementById('userDropdown').classList.add('hidden'); document.getElementById('voiceConfigModal').classList.remove('hidden'); }
+        function closeVoiceConfigModal() { document.getElementById('voiceConfigModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
